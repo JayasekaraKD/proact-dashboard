@@ -1,7 +1,9 @@
 ---
 import DashboardLayout from "../layouts/DashboardLayout.astro";
 import RelationshipTable from "../components/dashboard/RelationshipTable";
-import { relationships } from "../data/dummy";
+import { relationService } from "../services/relationService";
+
+const relationships = await relationService.getAllRelations();
 ---
 
 <DashboardLayout title="Relationships">
