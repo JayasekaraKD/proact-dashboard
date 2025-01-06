@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 import { relationService } from '../../services/relationService';
 import { v4 as uuidv4 } from 'uuid';
 
-export const POST: APIRoute = async ({ request }) => {  // Changed from 'post' to 'POST'
+export const POST: APIRoute = async ({ request }) => {
     try {
         const data = await request.json();
         console.log('Received data:', data);

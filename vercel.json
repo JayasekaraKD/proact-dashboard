@@ -1,0 +1,20 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "dist/entry.mjs",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "dist/entry.mjs"
+        }
+    ],
+    "env": {
+        "PUBLIC_SUPABASE_URL": "@public_supabase_url",
+        "PUBLIC_SUPABASE_ANON_KEY": "@public_supabase_anon_key",
+        "DATABASE_URL": "@database_url"
+    }
+}

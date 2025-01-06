@@ -1,13 +1,11 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import react from '@astrojs/react';
-import node from '@astrojs/node';  // Add this
+import vercel from '@astrojs/vercel/serverless';  // Change this
 
 export default defineConfig({
     output: 'server',
-    adapter: node({  // Add this
-        mode: 'standalone'
-    }),
+    adapter: vercel(),  // Change this
     integrations: [
         tailwind({
             applyBaseStyles: false,
