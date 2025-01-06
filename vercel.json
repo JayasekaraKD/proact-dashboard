@@ -11,10 +11,5 @@
             "src": "/(.*)",
             "dest": "dist/entry.mjs"
         }
-    ],
-    "env": {
-        "PUBLIC_SUPABASE_URL": "@public_supabase_url",
-        "PUBLIC_SUPABASE_ANON_KEY": "@public_supabase_anon_key",
-        "DATABASE_URL": "@database_url"
-    }
+    ]
 }
