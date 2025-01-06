@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Edit2, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import RelationshipSecondaryTabs from './RelationshipSecondaryTabs';
 
 interface RelationshipModalTabsProps {
@@ -17,13 +17,8 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
     isEditMode,
     isUpdating
 }) => {
-    const [isEditing, setIsEditing] = useState(isEditMode);
     const [formData, setFormData] = useState<Relation>(relation);
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        setIsEditing(isEditMode);
-    }, [isEditMode]);
 
     useEffect(() => {
         setFormData(relation);
@@ -40,17 +35,10 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
     const handleSave = async () => {
         try {
             await onUpdate(relation.id, formData);
-            setIsEditing(false);
             setError(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to update relationship');
         }
-    };
-
-    const handleCancel = () => {
-        setFormData(relation);
-        setIsEditing(false);
-        setError(null);
     };
 
     return (
@@ -64,42 +52,24 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                     </div>
                 )}
 
-                {/* Edit Controls */}
-                <div className="flex justify-end gap-2">
-                    {isEditing ? (
-                        <>
-                            <button
-                                onClick={handleCancel}
-                                disabled={isUpdating}
-                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md disabled:opacity-50"
-                            >
-                                <X size={16} />
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={isUpdating}
-                                className="flex items-center gap-2 px-3 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
-                            >
-                                <Save size={16} />
-                                Save Changes
-                            </button>
-                        </>
-                    ) : (
+                {/* Save Controls - Only shown in edit mode */}
+                {isEditMode && (
+                    <div className="flex justify-end gap-2">
                         <button
-                            onClick={() => setIsEditing(true)}
-                            className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-md"
+                            onClick={handleSave}
+                            disabled={isUpdating}
+                            className="flex items-center gap-2 px-3 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
                         >
-                            <Edit2 size={16} />
-                            Edit
+                            <Save size={16} />
+                            Save Changes
                         </button>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-3 gap-4">
                     <div>
                         <label className="text-sm text-gray-600">Short name:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="text"
                                 name="shortName"
@@ -113,7 +83,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                     </div>
                     <div>
                         <label className="text-sm text-gray-600">Name:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="text"
                                 name="name"
@@ -127,7 +97,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                     </div>
                     <div>
                         <label className="text-sm text-gray-600">Email:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="email"
                                 name="email"
@@ -144,7 +114,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                 <div className="grid grid-cols-3 gap-4">
                     <div>
                         <label className="text-sm text-gray-600">Telephone:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="tel"
                                 name="telephone"
@@ -158,7 +128,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                     </div>
                     <div>
                         <label className="text-sm text-gray-600">Website:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="url"
                                 name="website"
@@ -172,7 +142,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                     </div>
                     <div>
                         <label className="text-sm text-gray-600">KVK Number:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="text"
                                 name="kvkNumber"
@@ -196,7 +166,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                                     name="isCustomer"
                                     checked={!!formData.isCustomer}
                                     onChange={handleChange}
-                                    disabled={!isEditing}
+                                    disabled={!isEditMode}
                                     className="mr-2"
                                 />
                                 Customer
@@ -207,7 +177,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                                     name="isSupplier"
                                     checked={!!formData.isSupplier}
                                     onChange={handleChange}
-                                    disabled={!isEditing}
+                                    disabled={!isEditMode}
                                     className="mr-2"
                                 />
                                 Supplier
@@ -216,7 +186,7 @@ const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
                     </div>
                     <div>
                         <label className="text-sm text-gray-600">VAT Number:</label>
-                        {isEditing ? (
+                        {isEditMode ? (
                             <input
                                 type="text"
                                 name="vatNumber"

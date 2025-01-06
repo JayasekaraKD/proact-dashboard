@@ -96,3 +96,54 @@ export const PUT: APIRoute = async ({ request }) => {
         );
     }
 };
+
+export const DELETE: APIRoute = async ({ request }) => {
+    try {
+        const data = await request.json();
+        console.log('Received delete data:', data);
+
+        if (!data.id) {
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    error: 'Relationship ID is required'
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+        }
+
+        await relationService.deleteRelation(data.id);
+
+        return new Response(
+            JSON.stringify({
+                success: true,
+                message: 'Relationship deleted successfully'
+            }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+    } catch (error) {
+        console.error('API Error:', error);
+        return new Response(
+            JSON.stringify({
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            }),
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+    }
+};
