@@ -1,7 +1,8 @@
+// src/components/dashboard/RelationshipTable.tsx
 import React, { useState } from 'react';
 import type { Relation } from '../../db/schema';
 import RelationshipModal from './RelationshipModal';
-import { Eye } from 'lucide-react';
+import { Eye, Edit } from 'lucide-react';
 
 interface Props {
     data: Relation[];
@@ -10,10 +11,24 @@ interface Props {
 export default function RelationshipTable({ data }: Props) {
     const [selectedRelation, setSelectedRelation] = useState<Relation | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
-    const handlePreviewClick = (relation: Relation) => {
+    const handleView = (relation: Relation) => {
         setSelectedRelation(relation);
+        setIsEditMode(false);
         setIsModalOpen(true);
+    };
+
+    const handleEdit = (relation: Relation) => {
+        setSelectedRelation(relation);
+        setIsEditMode(true);
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+        setSelectedRelation(null);
+        setIsEditMode(false);
     };
 
     return (
@@ -46,8 +61,8 @@ export default function RelationshipTable({ data }: Props) {
                             <th className="py-4 px-4 text-left text-sm font-semibold text-[#1e518b] uppercase">
                                 E-Mail
                             </th>
-                            <th className="py-4 px-4 text-left text-sm font-semibold text-[#1e518b] uppercase">
-                                Preview
+                            <th className="py-4 px-4 text-right text-sm font-semibold text-[#1e518b] uppercase">
+                                Actions
                             </th>
                         </tr>
                     </thead>
@@ -56,8 +71,7 @@ export default function RelationshipTable({ data }: Props) {
                             <tr
                                 key={item.id}
                                 className={`${index % 2 === 0 ? 'bg-[#f8f9fa]' : 'bg-white'
-                                    } hover:bg-[#00c07f] hover:text-white group cursor-pointer`}
-                                onClick={() => handlePreviewClick(item)}
+                                    } hover:bg-[#00c07f] hover:text-white group`}
                             >
                                 <td className="px-4 py-3.5 text-sm text-[#1e518b] group-hover:text-white">
                                     {item.shortName}
@@ -84,15 +98,28 @@ export default function RelationshipTable({ data }: Props) {
                                     {item.email}
                                 </td>
                                 <td className="px-4 py-3.5 text-right">
-                                    <button
-                                        className="text-[#1e518b] group-hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handlePreviewClick(item);
-                                        }}
-                                    >
-                                        <Eye className="w-5 h-5" />
-                                    </button>
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            className="text-[#1e518b] group-hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleView(item);
+                                            }}
+                                            title="View details"
+                                        >
+                                            <Eye className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            className="text-[#1e518b] group-hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(item);
+                                            }}
+                                            title="Edit relationship"
+                                        >
+                                            <Edit className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -102,11 +129,9 @@ export default function RelationshipTable({ data }: Props) {
 
             <RelationshipModal
                 isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setSelectedRelation(null);
-                }}
+                onClose={handleModalClose}
                 relation={selectedRelation}
+                isEditMode={isEditMode}
             />
         </div>
     );

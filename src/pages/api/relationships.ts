@@ -8,7 +8,6 @@ export const POST: APIRoute = async ({ request }) => {
         const data = await request.json();
         console.log('Received data:', data);
 
-        // Create the new relationship with required fields
         const newRelationData = {
             id: uuidv4(),
             ...data,
@@ -31,12 +30,62 @@ export const POST: APIRoute = async ({ request }) => {
         );
     } catch (error) {
         console.error('API Error:', error);
-
         return new Response(
             JSON.stringify({
                 success: false,
-                error: error instanceof Error ? error.message : 'Unknown error occurred',
-                details: error instanceof Error ? error.stack : undefined
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            }),
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+    }
+};
+
+export const PUT: APIRoute = async ({ request }) => {
+    try {
+        const data = await request.json();
+        console.log('Received update data:', data);
+
+        if (!data.id) {
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    error: 'Relationship ID is required'
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+        }
+
+        const { id, ...updateData } = data;
+        const updatedRelation = await relationService.updateRelation(id, updateData);
+
+        return new Response(
+            JSON.stringify({
+                success: true,
+                data: updatedRelation
+            }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+    } catch (error) {
+        console.error('API Error:', error);
+        return new Response(
+            JSON.stringify({
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
             }),
             {
                 status: 500,

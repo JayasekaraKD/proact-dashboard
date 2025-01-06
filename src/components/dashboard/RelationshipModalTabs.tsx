@@ -1,89 +1,232 @@
-// RelationshipModalTabs.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Tabs from '@radix-ui/react-tabs';
+import { Edit2, Save, X } from 'lucide-react';
 import RelationshipSecondaryTabs from './RelationshipSecondaryTabs';
 
 interface RelationshipModalTabsProps {
     relation: Relation;
+    onUpdate: (id: string, data: Partial<Relation>) => Promise<void>;
+    isEditMode: boolean;
+    isUpdating: boolean;
 }
 
-const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({ relation }) => {
+const RelationshipModalTabs: React.FC<RelationshipModalTabsProps> = ({
+    relation,
+    onUpdate,
+    isEditMode,
+    isUpdating
+}) => {
+    const [isEditing, setIsEditing] = useState(isEditMode);
+    const [formData, setFormData] = useState<Relation>(relation);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        setIsEditing(isEditMode);
+    }, [isEditMode]);
+
+    useEffect(() => {
+        setFormData(relation);
+    }, [relation]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }));
+    };
+
+    const handleSave = async () => {
+        try {
+            await onUpdate(relation.id, formData);
+            setIsEditing(false);
+            setError(null);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to update relationship');
+        }
+    };
+
+    const handleCancel = () => {
+        setFormData(relation);
+        setIsEditing(false);
+        setError(null);
+    };
+
     return (
         <>
             {/* Organization Information Tab */}
             <Tabs.Content value="organization" className="space-y-6">
-                <div className="grid grid-cols-3 gap-4">
-                    {/* Basic Info */}
-                    <div>
-                        <label className="text-sm text-gray-600">Relationship number:</label>
-                        <div className="mt-1 font-medium">REL-2024-{relation.id.slice(0, 4)}</div>
+                {/* Error Message */}
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-3 rounded-md">
+                        {error}
                     </div>
+                )}
+
+                {/* Edit Controls */}
+                <div className="flex justify-end gap-2">
+                    {isEditing ? (
+                        <>
+                            <button
+                                onClick={handleCancel}
+                                disabled={isUpdating}
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md disabled:opacity-50"
+                            >
+                                <X size={16} />
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={isUpdating}
+                                className="flex items-center gap-2 px-3 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+                            >
+                                <Save size={16} />
+                                Save Changes
+                            </button>
+                        </>
+                    ) : (
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="flex items-center gap-2 px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-md"
+                        >
+                            <Edit2 size={16} />
+                            Edit
+                        </button>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                    <div>
+                        <label className="text-sm text-gray-600">Short name:</label>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                name="shortName"
+                                value={formData.shortName || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.shortName}</div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="text-sm text-gray-600">Name:</label>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.name}</div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="text-sm text-gray-600">Email:</label>
+                        {isEditing ? (
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.email}</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                    <div>
+                        <label className="text-sm text-gray-600">Telephone:</label>
+                        {isEditing ? (
+                            <input
+                                type="tel"
+                                name="telephone"
+                                value={formData.telephone || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.telephone}</div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="text-sm text-gray-600">Website:</label>
+                        {isEditing ? (
+                            <input
+                                type="url"
+                                name="website"
+                                value={formData.website || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.website}</div>
+                        )}
+                    </div>
+                    <div>
+                        <label className="text-sm text-gray-600">KVK Number:</label>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                name="kvkNumber"
+                                value={formData.kvkNumber || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.kvkNumber}</div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-sm text-gray-600">Type:</label>
                         <div className="mt-1 flex gap-4">
                             <label className="inline-flex items-center">
-                                <input type="checkbox" checked className="mr-2" /> Customer
+                                <input
+                                    type="checkbox"
+                                    name="isCustomer"
+                                    checked={!!formData.isCustomer}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                    className="mr-2"
+                                />
+                                Customer
                             </label>
                             <label className="inline-flex items-center">
-                                <input type="checkbox" className="mr-2" /> Supplier
+                                <input
+                                    type="checkbox"
+                                    name="isSupplier"
+                                    checked={!!formData.isSupplier}
+                                    onChange={handleChange}
+                                    disabled={!isEditing}
+                                    className="mr-2"
+                                />
+                                Supplier
                             </label>
                         </div>
-                    </div>
-                    <div>
-                        <label className="text-sm text-gray-600">Short name:</label>
-                        <div className="mt-1 font-medium">{relation.shortName}</div>
-                    </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                    <div>
-                        <label className="text-sm text-gray-600">Name:</label>
-                        <div className="mt-1 font-medium">{relation.name}</div>
-                    </div>
-                    <div>
-                        <label className="text-sm text-gray-600">Email:</label>
-                        <div className="mt-1 font-medium">{relation.email}</div>
-                    </div>
-                    <div>
-                        <label className="text-sm text-gray-600">Telephone:</label>
-                        <div className="mt-1 font-medium">{relation.telephone}</div>
-                    </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                    <div>
-                        <label className="text-sm text-gray-600">Website:</label>
-                        <div className="mt-1 font-medium">{relation.website}</div>
-                    </div>
-                    <div>
-                        <label className="text-sm text-gray-600">KVK Number:</label>
-                        <div className="mt-1 font-medium">{relation.kvkNumber}</div>
                     </div>
                     <div>
                         <label className="text-sm text-gray-600">VAT Number:</label>
-                        <div className="mt-1 font-medium">{relation.vatNumber}</div>
-                    </div>
-                </div>
-
-                {/* Transport Types */}
-                <div>
-                    <label className="text-sm text-gray-600">Transport types:</label>
-                    <div className="mt-2 grid grid-cols-2 gap-4">
-                        <div className="flex gap-4">
-                            <label className="inline-flex items-center">
-                                <input type="checkbox" className="mr-2" /> Intermodal
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input type="checkbox" className="mr-2" /> International
-                            </label>
-                        </div>
-                        <div className="flex gap-4">
-                            <label className="inline-flex items-center">
-                                <input type="checkbox" className="mr-2" /> City distribution
-                            </label>
-                            <label className="inline-flex items-center">
-                                <input type="checkbox" className="mr-2" /> Regional
-                            </label>
-                        </div>
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                name="vatNumber"
+                                value={formData.vatNumber || ''}
+                                onChange={handleChange}
+                                className="mt-1 w-full px-3 py-2 border rounded-md"
+                            />
+                        ) : (
+                            <div className="mt-1 font-medium">{relation.vatNumber}</div>
+                        )}
                     </div>
                 </div>
 
