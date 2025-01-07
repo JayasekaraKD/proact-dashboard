@@ -2,7 +2,7 @@
 import type { APIRoute } from 'astro';
 import { relationService } from '../../../services/relationService';
 import { insertRelationSchema } from '../../../db/schema';
-import { ZodError } from 'astro/zod';
+import { ZodError } from 'zod';
 
 export const GET: APIRoute = async ({ params }) => {
     try {
