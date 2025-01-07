@@ -17,20 +17,6 @@ export const relationService = {
         }
     },
 
-    async getRelationById(id: string): Promise<Relation | null> {
-        try {
-            const result = await db
-                .select()
-                .from(relationTable)
-                .where(eq(relationTable.id, id))
-                .limit(1);
-
-            return result[0] || null;
-        } catch (error) {
-            console.error('Error fetching relation:', error);
-            throw error;
-        }
-    },
 
     async createRelation(relation: NewRelation): Promise<Relation> {
         try {
@@ -81,24 +67,44 @@ export const relationService = {
     async deleteRelation(id: string): Promise<void> {
         try {
             await db.transaction(async (tx) => {
-                // Delete related records first
+                // First, delete all related records
+                // This is a safety measure even though we have CASCADE set up
                 await tx.delete(notes).where(eq(notes.relationId, id));
                 await tx.delete(documents).where(eq(documents.relationId, id));
                 await tx.delete(contactPersons).where(eq(contactPersons.relationId, id));
 
-                // Finally delete the relation
+                // Finally, delete the relationship
                 const result = await tx
                     .delete(relationTable)
                     .where(eq(relationTable.id, id))
                     .returning();
 
                 if (result.length === 0) {
-                    throw new Error('Relation not found');
+                    throw new Error('Relationship not found');
                 }
             });
         } catch (error) {
-            console.error('Error deleting relation:', error);
-            throw error;
+            console.error('Error in deleteRelation:', error);
+            throw error instanceof Error
+                ? error
+                : new Error('Failed to delete relationship');
+        }
+    },
+
+    async getRelationById(id: string): Promise<Relation | null> {
+        try {
+            const result = await db
+                .select()
+                .from(relationTable)
+                .where(eq(relationTable.id, id))
+                .limit(1);
+
+            return result[0] || null;
+        } catch (error) {
+            console.error('Error in getRelationById:', error);
+            throw error instanceof Error
+                ? error
+                : new Error('Failed to fetch relationship');
         }
     }
 };

@@ -113,25 +113,68 @@ export const PUT: APIRoute = async ({ params, request }) => {
 export const DELETE: APIRoute = async ({ params }) => {
     try {
         const { id } = params;
+
         if (!id) {
             return new Response(
-                JSON.stringify({ error: 'Relationship ID is required' }),
-                { status: 400 }
+                JSON.stringify({
+                    success: false,
+                    error: 'Relationship ID is required'
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
         }
 
+        // Check if relationship exists
+        const existing = await relationService.getRelationById(id);
+        if (!existing) {
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    error: 'Relationship not found'
+                }),
+                {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+        }
+
+        // Delete the relationship and all related records
         await relationService.deleteRelation(id);
-        return new Response(
-            JSON.stringify({ success: true }),
-            { status: 200 }
-        );
-    } catch (error) {
-        console.error('Error:', error);
+
         return new Response(
             JSON.stringify({
+                success: true,
+                message: 'Relationship deleted successfully'
+            }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+    } catch (error) {
+        console.error('Error deleting relationship:', error);
+
+        return new Response(
+            JSON.stringify({
+                success: false,
                 error: error instanceof Error ? error.message : 'Internal server error'
             }),
-            { status: 500 }
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
         );
     }
 };
