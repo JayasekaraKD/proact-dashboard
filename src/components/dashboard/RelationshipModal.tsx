@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import RelationshipModalTabs from './RelationshipModalTabs';
 
 interface RelationshipModalProps {
@@ -28,54 +28,26 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
         setIsUpdating(true);
         setError(null);
         try {
-            // Only include fields that exist in your database schema
-            const updateFields = {
-                short_name: data.shortName,
-                customer_activity: data.customerActivity,
-                name: data.name,
-                telephone: data.telephone,
-                email: data.email,
-                street: data.street,
-                house_number: data.houseNumber,
-                postcode: data.postcode,
-                place: data.place,
-                land: data.land,
-                website: data.website,
-                kvk_number: data.kvkNumber,
-                vat_number: data.vatNumber,
-                is_customer: data.isCustomer,
-                is_supplier: data.isSupplier
-            };
-
-            // Filter out undefined values
-            const cleanedData = Object.fromEntries(
-                Object.entries(updateFields).filter(([_, v]) => v !== undefined)
-            );
-
-            console.log('Sending update with filtered data:', { id, ...cleanedData });
-
-            const response = await fetch('/api/relationships', {
+            const response = await fetch(`/api/relationships/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    id,
-                    ...cleanedData
-                }),
+                body: JSON.stringify(data)
             });
 
-            const result = await response.json();
+            const responseData = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.error || 'Failed to update relationship');
+                throw new Error(
+                    responseData.error ||
+                    (responseData.details && JSON.stringify(responseData.details)) ||
+                    'Failed to update relationship'
+                );
             }
 
-            if (result.success) {
-                window.location.reload();
-            } else {
-                throw new Error(result.error || 'Failed to update relationship');
-            }
+            // Refresh the page to show updated data
+            window.location.reload();
         } catch (error) {
             console.error('Error updating relationship:', error);
             setError(error instanceof Error ? error.message : 'An error occurred');
@@ -84,15 +56,6 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
             setIsUpdating(false);
         }
     };
-
-    const tabs = [
-        { id: 'organization', label: 'Organization information' },
-        { id: 'address', label: 'Address details' },
-        { id: 'financial', label: 'Financial data' },
-        { id: 'contacts', label: 'Contact persons' },
-        { id: 'documents', label: 'Documents' },
-        { id: 'notes', label: 'Notes' }
-    ];
 
     return (
         <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -114,25 +77,29 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
                                 )}
                             </Dialog.Title>
                             <Dialog.Close className="text-gray-500 hover:text-gray-700">
-                                <span className="material-icons">close</span>
+                                <X className="h-5 w-5" />
                             </Dialog.Close>
                         </div>
 
                         {/* Tabs */}
                         <Tabs.Root defaultValue="organization" className="flex-1 flex flex-col min-h-0">
                             <Tabs.List className="flex gap-1 px-4 border-b bg-white">
-                                {tabs.map(tab => (
-                                    <Tabs.Trigger
-                                        key={tab.id}
-                                        value={tab.id}
-                                        className="px-4 py-2 text-sm text-gray-600 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 hover:text-gray-800"
-                                    >
-                                        {tab.label}
-                                    </Tabs.Trigger>
-                                ))}
+                                <Tabs.Trigger
+                                    value="organization"
+                                    className="px-4 py-2 text-sm text-gray-600 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 hover:text-gray-800"
+                                >
+                                    Organization
+                                </Tabs.Trigger>
+                                <Tabs.Trigger
+                                    value="address"
+                                    className="px-4 py-2 text-sm text-gray-600 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 hover:text-gray-800"
+                                >
+                                    Address
+                                </Tabs.Trigger>
+                                {/* Add other tab triggers as needed */}
                             </Tabs.List>
 
-                            {/* Scrollable Content Area */}
+                            {/* Content Area */}
                             <div className="flex-1 overflow-y-auto p-6">
                                 <RelationshipModalTabs
                                     relation={relation}

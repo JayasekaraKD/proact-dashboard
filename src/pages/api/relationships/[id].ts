@@ -2,6 +2,7 @@
 import type { APIRoute } from 'astro';
 import { relationService } from '../../../services/relationService';
 import { insertRelationSchema } from '../../../db/schema';
+import { ZodError } from 'astro/zod';
 
 export const GET: APIRoute = async ({ params }) => {
     try {
@@ -41,26 +42,70 @@ export const PUT: APIRoute = async ({ params, request }) => {
         const { id } = params;
         if (!id) {
             return new Response(
-                JSON.stringify({ error: 'Relationship ID is required' }),
-                { status: 400 }
+                JSON.stringify({
+                    success: false,
+                    error: 'Relationship ID is required'
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
         }
 
         const body = await request.json();
-        const validData = insertRelationSchema.partial().parse(body);
-        const updated = await relationService.updateRelation(id, validData);
+
+        // Validate the update data using the partial schema
+        // This allows partial updates while still enforcing field-level validation
+        const validatedData = insertRelationSchema.partial().parse(body);
+
+        // Update the relation
+        const updated = await relationService.updateRelation(id, validatedData);
 
         return new Response(
-            JSON.stringify({ data: updated }),
-            { status: 200 }
+            JSON.stringify({
+                success: true,
+                data: updated
+            }),
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
         );
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error updating relationship:', error);
+
+        if (error instanceof ZodError) {
+            return new Response(
+                JSON.stringify({
+                    success: false,
+                    error: 'Validation failed',
+                    details: error.errors
+                }),
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+        }
+
         return new Response(
             JSON.stringify({
+                success: false,
                 error: error instanceof Error ? error.message : 'Internal server error'
             }),
-            { status: 500 }
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
         );
     }
 };
