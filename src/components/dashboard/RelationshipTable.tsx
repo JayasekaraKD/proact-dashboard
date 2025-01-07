@@ -1,3 +1,4 @@
+// src/components/dashboard/RelationshipTable.tsx
 import React, { useState } from 'react';
 import type { Relation } from '../../db/schema';
 import RelationshipModal from './RelationshipModal';

@@ -1,5 +1,3 @@
-
-
 // src/pages/api/relations/[id]/notes.ts
 import type { APIRoute } from 'astro';
 import { noteService } from '../../../../services/noteService';

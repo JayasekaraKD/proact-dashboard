@@ -1,3 +1,4 @@
+// src/db/schema.ts
 import { pgTable, text, timestamp, uuid, boolean, integer, decimal, jsonb } from 'drizzle-orm/pg-core';
 
 export const relations = pgTable('relations', {

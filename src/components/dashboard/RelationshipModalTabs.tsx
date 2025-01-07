@@ -1,3 +1,4 @@
+// src/components/dashboard/RelationshipModalTabs.tsx
 import React, { useState, useEffect } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Tabs from '@radix-ui/react-tabs';

@@ -1,4 +1,4 @@
-// RelationshipSecondaryTabs.tsx
+// src/components/dashboard/RelationshipSecondaryTabs.tsx
 import React, { useEffect, useState } from 'react';
 import type { Relation, ContactPerson, Document, Note } from '../../db/schema';
 import * as Tabs from '@radix-ui/react-tabs';
