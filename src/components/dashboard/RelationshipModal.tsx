@@ -1,4 +1,3 @@
-// src/components/dashboard/RelationshipModal.tsx
 import React, { useState } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Dialog from '@radix-ui/react-dialog';
