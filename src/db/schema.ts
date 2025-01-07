@@ -136,7 +136,18 @@ export const insertRelationSchema = createInsertSchema(relationTable, {
     shortName: z.string().min(1, "Short name is required"),
     name: z.string().min(1, "Name is required"),
     email: z.string().email("Invalid email format").optional().nullable(),
-    website: z.string().url("Invalid website URL").optional().nullable(),
+    // Updated website validation to handle empty strings and optional values
+    website: z.string()
+        .trim()
+        .transform(val => val === '' ? null : val)
+        .pipe(
+            z.string()
+                .url("Invalid website URL")
+                .optional()
+                .nullable()
+        )
+        .optional()
+        .nullable(),
     kvkNumber: z.string().min(8, "KVK number must be 8 characters").max(8).optional().nullable(),
     vatNumber: z.string().regex(/^[A-Z]{2}[0-9A-Z]+$/, "Invalid VAT number format").optional().nullable(),
     telephone: z.string().optional().nullable(),

@@ -1,8 +1,9 @@
+// src/components/dashboard/RelationshipModal.tsx
 import React, { useState } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Loader2, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import RelationshipModalTabs from './RelationshipModalTabs';
 
 interface RelationshipModalProps {
@@ -27,25 +28,40 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
         setIsUpdating(true);
         setError(null);
         try {
+            // Clean the data before sending
+            const cleanedData = Object.entries(data).reduce((acc, [key, value]) => {
+                // Convert empty strings to null
+                if (value === '') {
+                    acc[key] = null;
+                } else {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {} as Record<string, any>);
+
             const response = await fetch(`/api/relationships/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(cleanedData)
             });
 
             const responseData = await response.json();
 
             if (!response.ok) {
-                throw new Error(
-                    responseData.error ||
-                    (responseData.details && JSON.stringify(responseData.details)) ||
-                    'Failed to update relationship'
-                );
+                if (responseData.details) {
+                    // Format validation errors
+                    const errorMessages = Array.isArray(responseData.details)
+                        ? responseData.details.map((detail: any) =>
+                            `${detail.path.join('.')}: ${detail.message}`
+                        ).join(', ')
+                        : responseData.error;
+                    throw new Error(errorMessages);
+                }
+                throw new Error(responseData.error || 'Failed to update relationship');
             }
 
-            // Refresh the page to show updated data
             window.location.reload();
         } catch (error) {
             console.error('Error updating relationship:', error);
@@ -76,29 +92,16 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
                                 )}
                             </Dialog.Title>
                             <Dialog.Close className="text-gray-500 hover:text-gray-700">
-                                <X className="h-5 w-5" />
+                                <span className="material-icons">close</span>
                             </Dialog.Close>
                         </div>
 
-                        {/* Tabs */}
+                        {/* Content */}
                         <Tabs.Root defaultValue="organization" className="flex-1 flex flex-col min-h-0">
                             <Tabs.List className="flex gap-1 px-4 border-b bg-white">
-                                <Tabs.Trigger
-                                    value="organization"
-                                    className="px-4 py-2 text-sm text-gray-600 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 hover:text-gray-800"
-                                >
-                                    Organization
-                                </Tabs.Trigger>
-                                <Tabs.Trigger
-                                    value="address"
-                                    className="px-4 py-2 text-sm text-gray-600 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 hover:text-gray-800"
-                                >
-                                    Address
-                                </Tabs.Trigger>
-                                {/* Add other tab triggers as needed */}
+                                {/* Your existing tabs */}
                             </Tabs.List>
 
-                            {/* Content Area */}
                             <div className="flex-1 overflow-y-auto p-6">
                                 <RelationshipModalTabs
                                     relation={relation}

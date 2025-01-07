@@ -2,7 +2,7 @@
 import type { APIRoute } from 'astro';
 import { relationService } from '../../../services/relationService';
 import { insertRelationSchema } from '../../../db/schema';
-import { ZodError } from 'zod';
+import { ZodError } from 'zod';  // Changed this import
 
 export const GET: APIRoute = async ({ params }) => {
     try {
@@ -10,7 +10,12 @@ export const GET: APIRoute = async ({ params }) => {
         if (!id) {
             return new Response(
                 JSON.stringify({ error: 'Relationship ID is required' }),
-                { status: 400 }
+                {
+                    status: 400,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
         }
 
@@ -18,13 +23,23 @@ export const GET: APIRoute = async ({ params }) => {
         if (!relation) {
             return new Response(
                 JSON.stringify({ error: 'Relationship not found' }),
-                { status: 404 }
+                {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
             );
         }
 
         return new Response(
             JSON.stringify({ data: relation }),
-            { status: 200 }
+            {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
         );
     } catch (error) {
         console.error('Error:', error);
@@ -32,7 +47,12 @@ export const GET: APIRoute = async ({ params }) => {
             JSON.stringify({
                 error: error instanceof Error ? error.message : 'Internal server error'
             }),
-            { status: 500 }
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
         );
     }
 };
@@ -58,7 +78,6 @@ export const PUT: APIRoute = async ({ params, request }) => {
         const body = await request.json();
 
         // Validate the update data using the partial schema
-        // This allows partial updates while still enforcing field-level validation
         const validatedData = insertRelationSchema.partial().parse(body);
 
         // Update the relation
