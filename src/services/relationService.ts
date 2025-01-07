@@ -34,13 +34,18 @@ export const relationService = {
 
     async createRelation(relation: NewRelation): Promise<Relation> {
         try {
+            // Clean up the input data by removing undefined values
+            const cleanedData = Object.fromEntries(
+                Object.entries(relation).filter(([_, v]) => v !== undefined)
+            ) as NewRelation;
+
             const [result] = await db
                 .insert(relationTable)
-                .values(relation)
+                .values(cleanedData)
                 .returning();
 
             if (!result) {
-                throw new Error('No relation was created');
+                throw new Error('Failed to create relationship');
             }
 
             return result;
@@ -49,6 +54,7 @@ export const relationService = {
             throw error;
         }
     },
+
 
     async updateRelation(id: string, updates: Partial<Relation>): Promise<Relation> {
         try {

@@ -1,44 +1,58 @@
 // src/components/dashboard/CreateRelationshipButton.tsx
 import React, { useState } from 'react';
 import CreateRelationshipForm from './CreateRelationshipForm';
+import type { RelationshipFormData } from '../../types/relationship';
 
 const CreateRelationshipButton: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (data: any) => {
+    const handleSubmit = async (data: RelationshipFormData) => {
         try {
-            console.log('Submitting data:', data);
+            setIsSubmitting(true);
+            setError(null);
 
             const response = await fetch('/api/relationships', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify({
+                    shortName: data.shortName,
+                    name: data.name,
+                    telephone: data.telephone || null,
+                    email: data.email || null,
+                    website: data.website || null,
+                    kvkNumber: data.kvkNumber || null,
+                    vatNumber: data.vatNumber || null,
+                    street: data.street || null,
+                    houseNumber: data.houseNumber || null,
+                    postcode: data.postcode || null,
+                    place: data.place || null,
+                    land: data.land || null,
+                    isCustomer: data.isCustomer,
+                    isSupplier: data.isSupplier,
+                }),
             });
 
-            const responseText = await response.text();
-            console.log('Raw response:', responseText);
-
-            let responseData;
-            try {
-                responseData = JSON.parse(responseText);
-            } catch (e) {
-                console.error('Failed to parse response:', responseText);
-                throw new Error('Invalid server response');
-            }
+            const responseData = await response.json();
 
             if (!response.ok) {
-                throw new Error(responseData.error || 'Failed to create relationship');
+                throw new Error(
+                    responseData.error ||
+                    (responseData.details && JSON.stringify(responseData.details)) ||
+                    'Failed to create relationship'
+                );
             }
 
-            console.log('Success:', responseData);
+            setIsOpen(false);
             window.location.reload();
         } catch (error) {
-            console.error('Error details:', error);
-            setError(error instanceof Error ? error.message : 'Unknown error');
-            alert(`Failed to create relationship: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            console.error('Error creating relationship:', error);
+            setError(error instanceof Error ? error.message : 'An unknown error occurred');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -61,6 +75,7 @@ const CreateRelationshipButton: React.FC = () => {
                 }}
                 onSubmit={handleSubmit}
                 error={error}
+                isSubmitting={isSubmitting}
             />
         </>
     );
