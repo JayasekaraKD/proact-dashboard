@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import type { Relation } from '../../db/schema';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import RelationshipModalTabs from './RelationshipModalTabs';
 
 interface RelationshipModalProps {
@@ -13,6 +13,15 @@ interface RelationshipModalProps {
     isEditMode: boolean;
 }
 
+const tabs = [
+    { id: 'organization', label: 'Organization Information' },
+    { id: 'address', label: 'Address Details' },
+    { id: 'financial', label: 'Financial Data' },
+    { id: 'contacts', label: 'Contact Persons' },
+    { id: 'documents', label: 'Documents' },
+    { id: 'notes', label: 'Notes' }
+];
+
 const RelationshipModal: React.FC<RelationshipModalProps> = ({
     isOpen,
     onClose,
@@ -21,6 +30,7 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
 }) => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState('organization');
 
     if (!relation) return null;
 
@@ -92,14 +102,28 @@ const RelationshipModal: React.FC<RelationshipModalProps> = ({
                                 )}
                             </Dialog.Title>
                             <Dialog.Close className="text-gray-500 hover:text-gray-700">
-                                <span className="material-icons">close</span>
+                                <X className="h-5 w-5" />
                             </Dialog.Close>
                         </div>
 
                         {/* Content */}
-                        <Tabs.Root defaultValue="organization" className="flex-1 flex flex-col min-h-0">
+                        <Tabs.Root
+                            defaultValue="organization"
+                            className="flex-1 flex flex-col min-h-0"
+                            value={activeTab}
+                            onValueChange={setActiveTab}
+                        >
                             <Tabs.List className="flex gap-1 px-4 border-b bg-white">
-                                {/* Your existing tabs */}
+                                {tabs.map(tab => (
+                                    <Tabs.Trigger
+                                        key={tab.id}
+                                        value={tab.id}
+                                        className={`px-4 py-2 text-sm text-gray-600 border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 hover:text-gray-800 transition-colors ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : ''
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </Tabs.Trigger>
+                                ))}
                             </Tabs.List>
 
                             <div className="flex-1 overflow-y-auto p-6">
