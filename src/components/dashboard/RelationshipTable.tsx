@@ -31,7 +31,6 @@ export default function RelationshipTable({ data }: Props) {
 
     const handleDeleteClick = (relation: Relation) => {
         setSelectedRelation(relation);
-        setDeleteError(null);
         setIsDeleteDialogOpen(true);
     };
 
@@ -42,32 +41,29 @@ export default function RelationshipTable({ data }: Props) {
         setDeleteError(null);
 
         try {
-            const response = await fetch(`/api/relationships/${selectedRelation.id}`, {
+            const response = await fetch(`/api/relationships`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                }
+                },
+                body: JSON.stringify({ id: selectedRelation.id })
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
+                const data = await response.json();
                 throw new Error(data.error || 'Failed to delete relationship');
             }
 
-            if (data.success) {
-                window.location.reload();
-            } else {
-                throw new Error(data.error || 'Failed to delete relationship');
-            }
+            // Refresh the page to show updated data
+            window.location.reload();
         } catch (error) {
             console.error('Error deleting relationship:', error);
             setDeleteError(error instanceof Error ? error.message : 'Failed to delete relationship');
         } finally {
             setIsDeleting(false);
+            setIsDeleteDialogOpen(false);
         }
     };
-
     return (
         <div className="bg-white">
             <div className="overflow-x-auto">
@@ -104,10 +100,11 @@ export default function RelationshipTable({ data }: Props) {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {data.map((item) => (
+                        {data.map((item, index) => (
                             <tr
                                 key={item.id}
-                                className={`hover:bg-[#00c07f] hover:text-white transition-colors`}
+                                className={`${index % 2 === 0 ? 'bg-[#f8f9fa]' : 'bg-white'
+                                    } hover:bg-[#00c07f] hover:text-white group`}
                             >
                                 <td className="px-4 py-3.5 text-sm text-[#1e518b] group-hover:text-white">
                                     {item.shortName}
@@ -136,21 +133,27 @@ export default function RelationshipTable({ data }: Props) {
                                 <td className="px-4 py-3.5 text-right">
                                     <div className="flex justify-end gap-2">
                                         <button
-                                            className="text-[#1e518b] hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
-                                            onClick={() => handleView(item)}
+                                            className="text-[#1e518b] group-hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleView(item);
+                                            }}
                                             title="View details"
                                         >
                                             <Eye className="w-5 h-5" />
                                         </button>
                                         <button
-                                            className="text-[#1e518b] hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
-                                            onClick={() => handleEdit(item)}
+                                            className="text-[#1e518b] group-hover:text-white p-1 rounded-full hover:bg-[#1e518b]/10"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(item);
+                                            }}
                                             title="Edit relationship"
                                         >
                                             <Edit className="w-5 h-5" />
                                         </button>
                                         <button
-                                            className="text-red-600 hover:text-white p-1 rounded-full hover:bg-red-50"
+                                            className="text-red-600 group-hover:text-white p-1 rounded-full hover:bg-red-50"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDeleteClick(item);
@@ -176,18 +179,14 @@ export default function RelationshipTable({ data }: Props) {
                             Delete Relationship
                         </Dialog.Title>
                         <div className="mb-6">
-                            {deleteError ? (
-                                <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-600 mb-4">
-                                    {deleteError}
-                                </div>
-                            ) : (
-                                <p className="text-gray-600">
-                                    Are you sure you want to delete the relationship with{' '}
-                                    <span className="font-semibold">{selectedRelation?.name}</span>?
-                                    This action cannot be undone, and all related data (contacts, documents, notes) will also be deleted.
-                                </p>
-                            )}
+                            Are you sure you want to delete the relationship with {selectedRelation?.name}?
+                            This action cannot be undone.
                         </div>
+                        {deleteError && (
+                            <div className="text-red-600 text-sm mb-4">
+                                {deleteError}
+                            </div>
+                        )}
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={() => setIsDeleteDialogOpen(false)}
