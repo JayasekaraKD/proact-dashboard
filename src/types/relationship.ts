@@ -26,6 +26,8 @@ export interface CreateRelationshipFormProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: RelationshipFormData) => void;
+    error: string | null;
+    isSubmitting: boolean;  // Added this property
 }
 
 export interface NewRelationshipData extends RelationshipFormData {

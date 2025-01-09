@@ -1,8 +1,10 @@
 ---
+// src/pages/index.astro
 import DashboardLayout from "../layouts/DashboardLayout.astro";
-import RelationshipTable from "../components/dashboard/RelationshipTable";
-import CreateRelationshipButton from "../components/dashboard/CreateRelationshipButton";
+import RelationshipTable from "../components/dashboard/RelationshipTable.astro";
+import RelationshipModal from "../components/dashboard/RelationshipModal.astro";
 import { relationService } from "../services/relationService";
+import CreateRelationshipButton from "@/components/dashboard/CreateRelationshipButton";
 
 const relationships = await relationService.getAllRelations();
 ---
@@ -14,15 +16,68 @@ const relationships = await relationService.getAllRelations();
 			<CreateRelationshipButton client:load />
 		</div>
 
-		<!-- Search Box -->
 		<div class="mb-4">
 			<input
 				type="text"
+				id="searchInput"
 				placeholder="Search relationships..."
 				class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 			/>
 		</div>
 
-		<RelationshipTable client:load data={relationships} />
+		<RelationshipTable data={relationships} />
+		<RelationshipModal />
 	</div>
 </DashboardLayout>
+
+<script>
+	import {
+		relationships,
+		modalState,
+		selectedRelation,
+	} from "../store/relationshipStore";
+
+	// Initialize relationships store with server data
+	relationships.set(
+		JSON.parse(
+			document.getElementById("relationship-data")?.textContent || "[]",
+		),
+	);
+
+	// Handle create button click
+	document
+		.getElementById("createRelationship")
+		?.addEventListener("click", () => {
+			selectedRelation.set(null);
+			modalState.set({
+				isOpen: true,
+				isUpdating: false,
+				isDeleting: false,
+				isSubmitting: false,
+				error: null,
+				activeTab: "basic",
+			});
+		});
+
+	// Handle search functionality
+	const searchInput = document.getElementById("searchInput");
+	searchInput?.addEventListener("input", (e) => {
+		const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+		const allRelations = relationships.get();
+
+		if (!searchTerm) {
+			relationships.set(allRelations);
+			return;
+		}
+
+		const filtered = allRelations.filter(
+			(relation) =>
+				relation.name.toLowerCase().includes(searchTerm) ||
+				relation.shortName.toLowerCase().includes(searchTerm) ||
+				relation.email?.toLowerCase().includes(searchTerm) ||
+				relation.place?.toLowerCase().includes(searchTerm),
+		);
+
+		relationships.set(filtered);
+	});
+</script>

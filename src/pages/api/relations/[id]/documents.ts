@@ -1,4 +1,3 @@
-
 // src/pages/api/relations/[id]/documents.ts
 import type { APIRoute } from 'astro';
 import { documentService } from '../../../../services/documentService';

@@ -110,50 +110,52 @@ const RelationshipSecondaryTabs: React.FC<RelationshipSecondaryTabsProps> = ({ r
                     </div>
                 ) : data.error.contacts ? (
                     <div className="text-red-500 py-4">{data.error.contacts}</div>
+                ) : data.contactPersons.length === 0 ? (
+                    <div className="text-center py-8">
+                        <div className="text-gray-400 mb-4">
+                            <span className="material-icons icon-xl">people</span>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-1">No Contact Persons</h3>
+                        <p className="text-gray-500 mb-4">There are no contact persons added yet.</p>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            + Add Contact Person
+                        </button>
+                    </div>
                 ) : (
-                    <>
-                        <div className="flex justify-between items-center">
-                            <h3 className="font-semibold text-lg">Contact Persons</h3>
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                + Add Contact Person
-                            </button>
-                        </div>
-                        <div className="border rounded-lg overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
-                                        {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th> */}
-                                        <th className="px-6 py-3"></th>
+                    <div className="border rounded-lg overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th> */}
+                                    <th className="px-6 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {data.contactPersons.map(person => (
+                                    <tr key={person.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">{person.name}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{person.position}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{person.email}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{person.phone}</td>
+                                        {/* <td className="px-6 py-4 whitespace-nowrap">{person.department}</td> */}
+                                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                                            <button className="text-blue-600 hover:text-blue-800">
+                                                <span className="material-icons">edit</span>
+                                            </button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {data.contactPersons.map(person => (
-                                        <tr key={person.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap">{person.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{person.position}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{person.email}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{person.phone}</td>
-                                            {/* <td className="px-6 py-4 whitespace-nowrap">{person.department}</td> */}
-                                            <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                <button className="text-blue-600 hover:text-blue-800">
-                                                    <span className="material-icons">edit</span>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </Tabs.Content>
+            </Tabs.Content >
             {/* Documents Tab */}
             <Tabs.Content value="documents" className="space-y-6">
-                {/* Similar structure to contacts tab, but for documents */}
                 {data.loading.documents ? (
                     <div className="flex items-center justify-center py-8">
                         <span className="material-icons animate-spin mr-2">refresh</span>
@@ -161,47 +163,51 @@ const RelationshipSecondaryTabs: React.FC<RelationshipSecondaryTabsProps> = ({ r
                     </div>
                 ) : data.error.documents ? (
                     <div className="text-red-500 py-4">{data.error.documents}</div>
+                ) : data.documents.length === 0 ? (
+                    <div className="text-center py-8">
+                        <div className="text-gray-400 mb-4">
+                            <span className="material-icons icon-xl">description</span>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-1">No Documents</h3>
+                        <p className="text-gray-500 mb-4">There are no documents uploaded yet.</p>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            + Upload Document
+                        </button>
+                    </div>
                 ) : (
-                    <>
-                        <div className="flex justify-between items-center">
-                            <h3 className="font-semibold text-lg">Documents</h3>
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                + Upload Document
-                            </button>
-                        </div>
-                        <div className="border rounded-lg overflow-hidden">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                {/* Keep your existing table structure */}
-                                <thead className="bg-gray-50">
-                                    {/* ... your existing header ... */}
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {data.documents.map(doc => (
-                                        <tr key={doc.id}>
-                                            <td className="px-6 py-4 whitespace-nowrap">{doc.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">{doc.type}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {new Date(doc.createdAt).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {doc.size ? `${Math.round(doc.size / 1024)} KB` : 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right">
-                                                <button className="text-blue-600 hover:text-blue-800 mr-2">
-                                                    <span className="material-icons">download</span>
-                                                </button>
-                                                <button className="text-red-600 hover:text-red-800">
-                                                    <span className="material-icons">delete</span>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </>
-                )}
-            </Tabs.Content>
+                    <div className="border rounded-lg overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            {/* Keep your existing table structure */}
+                            <thead className="bg-gray-50">
+                                {/* ... your existing header ... */}
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {data.documents.map(doc => (
+                                    <tr key={doc.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">{doc.name}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{doc.type}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {new Date(doc.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {doc.size ? `${Math.round(doc.size / 1024)} KB` : 'N/A'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                                            <button className="text-blue-600 hover:text-blue-800 mr-2">
+                                                <span className="material-icons">download</span>
+                                            </button>
+                                            <button className="text-red-600 hover:text-red-800">
+                                                <span className="material-icons">delete</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )
+                }
+            </Tabs.Content >
 
             {/* Notes Tab */}
             <Tabs.Content value="notes" className="space-y-6">
@@ -212,35 +218,40 @@ const RelationshipSecondaryTabs: React.FC<RelationshipSecondaryTabsProps> = ({ r
                     </div>
                 ) : data.error.notes ? (
                     <div className="text-red-500 py-4">{data.error.notes}</div>
+                ) : data.documents.length === 0 ? (
+                    <div className="text-center py-8">
+                        <div className="text-gray-400 mb-4">
+                            <span className="material-icons icon-xl">description</span>
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-1">No notes</h3>
+                        <p className="text-gray-500 mb-4">There are no notes uploaded yet.</p>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                            + Upload Note
+                        </button>
+                    </div>
                 ) : (
-                    <>
-                        <div className="flex justify-between items-center">
-                            <h3 className="font-semibold text-lg">Notes</h3>
-                            <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                                + Add Note
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            {data.notes.map(note => (
-                                <div key={note.id} className="border rounded-lg p-4 bg-white">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <h4 className="font-medium">{note.title}</h4>
-                                            <p className="text-sm text-gray-500">
-                                                {new Date(note.createdAt).toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <button className="text-gray-400 hover:text-gray-600">
-                                            <span className="material-icons">more_vert</span>
-                                        </button>
+
+                    <div className="space-y-4">
+                        {data.notes.map(note => (
+                            <div key={note.id} className="border rounded-lg p-4 bg-white">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 className="font-medium">{note.title}</h4>
+                                        <p className="text-sm text-gray-500">
+                                            {new Date(note.createdAt).toLocaleString()}
+                                        </p>
                                     </div>
-                                    <p className="text-gray-600">{note.content}</p>
+                                    <button className="text-gray-400 hover:text-gray-600">
+                                        <span className="material-icons">more_vert</span>
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-            </Tabs.Content>
+                                <p className="text-gray-600">{note.content}</p>
+                            </div>
+                        ))}
+                    </div>
+                )
+                }
+            </Tabs.Content >
         </>
     );
 };

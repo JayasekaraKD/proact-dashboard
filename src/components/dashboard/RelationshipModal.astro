@@ -1,0 +1,95 @@
+---
+import * as Dialog from "@radix-ui/react-dialog";
+import * as Tabs from "@radix-ui/react-tabs";
+import { Loader2, X } from "lucide-react";
+import type { Relation } from "../../db/schema";
+import RelationshipModalTabs from "./RelationshipModalTabs";
+
+const tabs = [
+    { id: "organization", label: "Organization Information" },
+    { id: "address", label: "Address Details" },
+    { id: "financial", label: "Financial Data" },
+    { id: "contacts", label: "Contact Persons" },
+    { id: "documents", label: "Documents" },
+    { id: "notes", label: "Notes" },
+];
+---
+
+<div id="relationship-modal" class="hidden">
+    <div class="fixed inset-0 bg-black/50 z-40"></div>
+    <div
+        class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg w-full max-w-4xl max-h-[90vh] shadow-xl z-50"
+    >
+        <div class="flex flex-col h-full max-h-[90vh]">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h2
+                    class="text-xl font-semibold flex items-center gap-3 modal-title"
+                >
+                </h2>
+                <button class="close-modal text-gray-500 hover:text-gray-700">
+                    <X client:load className="h-5 w-5" />
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <RelationshipModalTabs client:load />
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    import {
+        selectedRelation,
+        modalState,
+    } from "../../store/relationshipStore";
+
+    const modal = document.getElementById("relationship-modal");
+    const modalTitle = document.querySelector(".modal-title");
+
+    // Subscribe to store changes
+    modalState.subscribe((state) => {
+        if (modal) {
+            modal.style.display = state.isOpen ? "block" : "none";
+        }
+    });
+
+    selectedRelation.subscribe((relation) => {
+        if (modalTitle) {
+            modalTitle.textContent = relation
+                ? relation.name
+                : "Create New Relationship";
+        }
+    });
+
+    // Close handlers
+    document.querySelector(".close-modal")?.addEventListener("click", () => {
+        modalState.setKey("isOpen", false);
+        selectedRelation.set(null);
+    });
+
+    // Close on outside click
+    modal?.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modalState.setKey("isOpen", false);
+            selectedRelation.set(null);
+        }
+    });
+
+    // Create button handler
+    document
+        .getElementById("createRelationship")
+        ?.addEventListener("click", () => {
+            selectedRelation.set(null);
+            modalState.set({
+                isOpen: true,
+                isUpdating: false,
+                isDeleting: false,
+                isSubmitting: false, // Added this property
+                error: null,
+                activeTab: "organization",
+            });
+        });
+</script>
