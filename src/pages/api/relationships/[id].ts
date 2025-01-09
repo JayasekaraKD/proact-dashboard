@@ -2,58 +2,32 @@
 import type { APIRoute } from 'astro';
 import { relationService } from '../../../services/relationService';
 import { insertRelationSchema } from '../../../db/schema';
-import { ZodError } from 'zod';  // Changed this import
+import {
+    handleAPIError,
+    validateRequest,
+    successResponse,
+    notFoundResponse,
+    createAPIResponse
+} from '../../../utils/api';
 
 export const GET: APIRoute = async ({ params }) => {
     try {
         const { id } = params;
         if (!id) {
-            return new Response(
-                JSON.stringify({ error: 'Relationship ID is required' }),
-                {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            return createAPIResponse({
+                success: false,
+                error: 'Relationship ID is required'
+            }, 400);
         }
 
         const relation = await relationService.getRelationById(id);
         if (!relation) {
-            return new Response(
-                JSON.stringify({ error: 'Relationship not found' }),
-                {
-                    status: 404,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            return notFoundResponse('Relationship not found');
         }
 
-        return new Response(
-            JSON.stringify({ data: relation }),
-            {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        return successResponse(relation);
     } catch (error) {
-        console.error('Error:', error);
-        return new Response(
-            JSON.stringify({
-                error: error instanceof Error ? error.message : 'Internal server error'
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        return handleAPIError(error);
     }
 };
 
@@ -61,139 +35,46 @@ export const PUT: APIRoute = async ({ params, request }) => {
     try {
         const { id } = params;
         if (!id) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: 'Relationship ID is required'
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            return createAPIResponse({
+                success: false,
+                error: 'Relationship ID is required'
+            }, 400);
         }
 
-        const body = await request.json();
-
-        // Validate the update data using the partial schema
-        const validatedData = insertRelationSchema.partial().parse(body);
+        // Validate request body using utility function
+        const validatedData = await validateRequest(request, insertRelationSchema.partial());
 
         // Update the relation
         const updated = await relationService.updateRelation(id, validatedData);
-
-        return new Response(
-            JSON.stringify({
-                success: true,
-                data: updated
-            }),
-            {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        return successResponse(updated);
     } catch (error) {
-        console.error('Error updating relationship:', error);
-
-        if (error instanceof ZodError) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: 'Validation failed',
-                    details: error.errors
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-        }
-
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: error instanceof Error ? error.message : 'Internal server error'
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        return handleAPIError(error);
     }
 };
 
 export const DELETE: APIRoute = async ({ params }) => {
     try {
         const { id } = params;
-
         if (!id) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: 'Relationship ID is required'
-                }),
-                {
-                    status: 400,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            return createAPIResponse({
+                success: false,
+                error: 'Relationship ID is required'
+            }, 400);
         }
 
         // Check if relationship exists
         const existing = await relationService.getRelationById(id);
         if (!existing) {
-            return new Response(
-                JSON.stringify({
-                    success: false,
-                    error: 'Relationship not found'
-                }),
-                {
-                    status: 404,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            return notFoundResponse('Relationship not found');
         }
 
         // Delete the relationship and all related records
         await relationService.deleteRelation(id);
 
-        return new Response(
-            JSON.stringify({
-                success: true,
-                message: 'Relationship deleted successfully'
-            }),
-            {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        return successResponse({
+            message: 'Relationship deleted successfully'
+        });
     } catch (error) {
-        console.error('Error deleting relationship:', error);
-
-        return new Response(
-            JSON.stringify({
-                success: false,
-                error: error instanceof Error ? error.message : 'Internal server error'
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }
-        );
+        return handleAPIError(error);
     }
 };
