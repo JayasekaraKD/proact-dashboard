@@ -1,7 +1,7 @@
 // src/db/schema.ts
-import { pgTable, text, timestamp, uuid, boolean, integer, foreignKey } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, uuid, boolean, integer } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
-import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
 // Base relation table

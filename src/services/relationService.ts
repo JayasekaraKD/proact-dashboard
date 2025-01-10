@@ -2,7 +2,7 @@
 import { db } from '../db';
 import { relationTable, contactPersons, documents, notes } from '../db/schema';
 import type { Relation, NewRelation } from '../db/schema';
-import { and, eq, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export const relationService = {
     async getAllRelations(): Promise<Relation[]> {
