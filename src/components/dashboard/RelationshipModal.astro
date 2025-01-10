@@ -1,22 +1,18 @@
 ---
-import * as Dialog from "@radix-ui/react-dialog";
-import * as Tabs from "@radix-ui/react-tabs";
-import { Loader2, X } from "lucide-react";
+// src/components/relationship/RelationshipModal.astro
+import { Dialog } from "@radix-ui/react-dialog";
 import type { Relation } from "../../db/schema";
-import RelationshipModalTabs from "./RelationshipModalTabs";
+import RelationshipTabs from "./RelationshipTabs.astro";
 
-const tabs = [
-    { id: "organization", label: "Organization Information" },
-    { id: "address", label: "Address Details" },
-    { id: "financial", label: "Financial Data" },
-    { id: "contacts", label: "Contact Persons" },
-    { id: "documents", label: "Documents" },
-    { id: "notes", label: "Notes" },
-];
+interface Props {
+    defaultTab?: string;
+}
+
+const { defaultTab = "organization" } = Astro.props;
 ---
 
 <div id="relationship-modal" class="hidden">
-    <div class="fixed inset-0 bg-black/50 z-40"></div>
+    <div class="fixed inset-0 bg-black/50 z-40" data-overlay></div>
     <div
         class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg w-full max-w-4xl max-h-[90vh] shadow-xl z-50"
     >
@@ -28,68 +24,69 @@ const tabs = [
                 >
                 </h2>
                 <button class="close-modal text-gray-500 hover:text-gray-700">
-                    <X client:load className="h-5 w-5" />
+                    <span class="material-icons">close</span>
                 </button>
             </div>
 
-            <!-- Tabs -->
-            <div class="tabs-container">
-                <RelationshipModalTabs client:load />
+            <!-- Tabs Container -->
+            <div class="tabs-container" data-default-tab={defaultTab}>
+                <RelationshipTabs client:load />
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    import {
-        selectedRelation,
-        modalState,
-    } from "../../store/relationshipStore";
+    import { modalState } from "../../store/relationshipStore";
+    import { selectedRelation } from "../../store/relationshipStore";
 
-    const modal = document.getElementById("relationship-modal");
-    const modalTitle = document.querySelector(".modal-title");
+    class ModalController {
+        private modal: HTMLElement | null;
+        private title: HTMLElement | null;
+        private closeBtn: HTMLElement | null;
+        private overlay: HTMLElement | null;
 
-    // Subscribe to store changes
-    modalState.subscribe((state) => {
-        if (modal) {
-            modal.style.display = state.isOpen ? "block" : "none";
+        constructor() {
+            this.modal = document.getElementById("relationship-modal");
+            this.title = document.querySelector(".modal-title");
+            this.closeBtn = document.querySelector(".close-modal");
+            this.overlay = document.querySelector("[data-overlay]");
+            this.initialize();
         }
-    });
 
-    selectedRelation.subscribe((relation) => {
-        if (modalTitle) {
-            modalTitle.textContent = relation
-                ? relation.name
-                : "Create New Relationship";
+        private initialize() {
+            if (!this.modal || !this.title || !this.closeBtn || !this.overlay) {
+                console.error("Required modal elements not found");
+                return;
+            }
+
+            // Subscribe to store changes
+            modalState.subscribe((state) => {
+                this.modal!.style.display = state.isOpen ? "block" : "none";
+            });
+
+            selectedRelation.subscribe((relation) => {
+                if (this.title) {
+                    this.title.textContent = relation
+                        ? relation.name
+                        : "Create New Relationship";
+                }
+            });
+
+            // Setup event listeners
+            this.closeBtn.addEventListener("click", this.handleClose);
+            this.overlay.addEventListener("click", this.handleClose);
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") this.handleClose();
+            });
         }
-    });
 
-    // Close handlers
-    document.querySelector(".close-modal")?.addEventListener("click", () => {
-        modalState.setKey("isOpen", false);
-        selectedRelation.set(null);
-    });
-
-    // Close on outside click
-    modal?.addEventListener("click", (e) => {
-        if (e.target === modal) {
+        private handleClose = () => {
             modalState.setKey("isOpen", false);
             selectedRelation.set(null);
-        }
-    });
+        };
+    }
 
-    // Create button handler
-    document
-        .getElementById("createRelationship")
-        ?.addEventListener("click", () => {
-            selectedRelation.set(null);
-            modalState.set({
-                isOpen: true,
-                isUpdating: false,
-                isDeleting: false,
-                isSubmitting: false, // Added this property
-                error: null,
-                activeTab: "organization",
-            });
-        });
+    // Initialize modal controller
+    new ModalController();
 </script>

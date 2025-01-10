@@ -85,40 +85,6 @@ export async function handleCreate(data: RelationshipFormData) {
     }
 }
 
-export async function handleDelete(relation: Relation) {
-    modalState.setKey('isDeleting', true);
-    modalState.setKey('error', null);
-
-    try {
-        const response = await fetch(`/api/relationships/${relation.id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to delete relationship');
-        }
-
-        if (data.success) {
-            // Update the local store immediately
-            const currentRelations = relationships.get();
-            relationships.set(currentRelations.filter(r => r.id !== relation.id));
-
-            // Close any open modals
-            modalState.setKey('isOpen', false);
-            selectedRelation.set(null);
-        }
-    } catch (error) {
-        console.error('Error deleting relationship:', error);
-        modalState.setKey('error', error instanceof Error ? error.message : 'Failed to delete relationship');
-    } finally {
-        modalState.setKey('isDeleting', false);
-    }
-}
 
 export async function handleUpdate(id: string, data: Partial<Relation>) {
     modalState.setKey('isUpdating', true);
@@ -156,5 +122,73 @@ export async function handleUpdate(id: string, data: Partial<Relation>) {
         throw error;
     } finally {
         modalState.setKey('isUpdating', false);
+    }
+}
+export const deleteDialogState = map({
+    isOpen: false,
+    isDeleting: false,
+    error: null as string | null,
+    relationToDelete: null as Relation | null
+});
+
+// Update or add this handleDelete function
+export async function handleDelete(relation: Relation) {
+    deleteDialogState.set({
+        isOpen: true,
+        isDeleting: false,
+        error: null,
+        relationToDelete: relation
+    });
+}
+
+export async function confirmDelete() {
+    const relationToDelete = deleteDialogState.get().relationToDelete;
+
+    if (!relationToDelete) return;
+
+    deleteDialogState.setKey('isDeleting', true);
+    deleteDialogState.setKey('error', null);
+
+    try {
+        const response = await fetch(`/api/relationships/${relationToDelete.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to delete relationship');
+        }
+
+        if (data.success) {
+            // Update the local store
+            const currentRelations = relationships.get();
+            relationships.set(currentRelations.filter(r => r.id !== relationToDelete.id));
+
+            // Reset states
+            deleteDialogState.set({
+                isOpen: false,
+                isDeleting: false,
+                error: null,
+                relationToDelete: null
+            });
+
+            modalState.set({
+                isOpen: false,
+                isUpdating: false,
+                error: null,
+                activeTab: 'organization',
+                isDeleting: false,
+                isSubmitting: false
+            });
+        }
+    } catch (error) {
+        console.error('Error deleting relationship:', error);
+        deleteDialogState.setKey('error', error instanceof Error ? error.message : 'Failed to delete relationship');
+    } finally {
+        deleteDialogState.setKey('isDeleting', false);
     }
 }

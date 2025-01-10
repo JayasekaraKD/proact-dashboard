@@ -1,0 +1,176 @@
+---
+import { Tabs } from "@radix-ui/react-tabs";
+import OrganizationTabContent from "./tabs/OrganizationTabContent.astro";
+import AddressTabContent from "./tabs/AddressTabContent.astro";
+import FinancialTabContent from "./tabs/FinancialTabContent.astro";
+import ContactsTabContent from "./tabs/ContactTabContent.astro";
+import DocumentsTabContent from "./tabs/DocumentTabContent.astro";
+import NotesTabContent from "./tabs/NoteTabContent.astro";
+
+const tabs = [
+    { id: "organization", label: "Organization Information" },
+    { id: "address", label: "Address Details" },
+    { id: "financial", label: "Financial Data" },
+    { id: "contacts", label: "Contact Persons" },
+    { id: "documents", label: "Documents" },
+    { id: "notes", label: "Notes" },
+];
+
+interface Props {
+    defaultTab?: string;
+}
+
+const { defaultTab = "organization" } = Astro.props;
+---
+
+<div class="flex-1 flex flex-col min-h-0" data-tabs-root>
+    <!-- Tab List -->
+    <div class="flex gap-1 px-4 border-b bg-white" role="tablist">
+        {
+            tabs.map((tab) => (
+                <button
+                    role="tab"
+                    aria-selected={tab.id === defaultTab}
+                    aria-controls={`panel-${tab.id}`}
+                    data-tab={tab.id}
+                    class:list={[
+                        "px-4 py-2 text-sm border-b-2 transition-colors",
+                        "hover:text-gray-800",
+                        {
+                            "border-blue-600 text-blue-600":
+                                tab.id === defaultTab,
+                            "border-transparent text-gray-600":
+                                tab.id !== defaultTab,
+                        },
+                    ]}
+                >
+                    {tab.label}
+                </button>
+            ))
+        }
+    </div>
+
+    <!-- Tab Panels -->
+    <div class="flex-1 overflow-y-auto p-6" data-tab-content>
+        <div
+            role="tabpanel"
+            id="panel-organization"
+            class="space-y-6 tab-panel"
+            data-tab="organization"
+            hidden={defaultTab !== "organization"}
+        >
+            <OrganizationTabContent client:load />
+        </div>
+
+        <div
+            role="tabpanel"
+            id="panel-address"
+            class="space-y-6 tab-panel"
+            data-tab="address"
+            hidden={defaultTab !== "address"}
+        >
+            <AddressTabContent client:load />
+        </div>
+
+        <div
+            role="tabpanel"
+            id="panel-financial"
+            class="space-y-6 tab-panel"
+            data-tab="financial"
+            hidden={defaultTab !== "financial"}
+        >
+            <FinancialTabContent client:load />
+        </div>
+
+        <div
+            role="tabpanel"
+            id="panel-contacts"
+            class="space-y-6 tab-panel"
+            data-tab="contacts"
+            hidden={defaultTab !== "contacts"}
+        >
+            <ContactsTabContent client:load />
+        </div>
+
+        <div
+            role="tabpanel"
+            id="panel-documents"
+            class="space-y-6 tab-panel"
+            data-tab="documents"
+            hidden={defaultTab !== "documents"}
+        >
+            <DocumentsTabContent client:load />
+        </div>
+
+        <div
+            role="tabpanel"
+            id="panel-notes"
+            class="space-y-6 tab-panel"
+            data-tab="notes"
+            hidden={defaultTab !== "notes"}
+        >
+            <NotesTabContent client:load />
+        </div>
+    </div>
+</div>
+
+<script>
+    import { modalState } from "../../store/relationshipStore";
+
+    class TabController {
+        private root: HTMLElement | null;
+        private tabs: NodeListOf<HTMLElement>;
+        private panels: NodeListOf<HTMLElement>;
+
+        constructor() {
+            this.root = document.querySelector("[data-tabs-root]");
+            this.tabs = document.querySelectorAll('[role="tab"]');
+            this.panels = document.querySelectorAll(".tab-panel");
+            this.initialize();
+        }
+
+        private initialize() {
+            if (!this.root || !this.tabs.length || !this.panels.length) {
+                console.error("Required tab elements not found");
+                return;
+            }
+
+            // Subscribe to store changes
+            modalState.subscribe((state) => {
+                if (state.activeTab) {
+                    this.switchTab(state.activeTab);
+                }
+            });
+
+            // Setup event listeners
+            this.tabs.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    const tabId = tab.getAttribute("data-tab");
+                    if (tabId) this.handleTabClick(tabId);
+                });
+            });
+        }
+
+        private handleTabClick(tabId: string) {
+            modalState.setKey("activeTab", tabId);
+        }
+
+        private switchTab(tabId: string) {
+            this.tabs.forEach((tab) => {
+                const isSelected = tab.getAttribute("data-tab") === tabId;
+                tab.setAttribute("aria-selected", String(isSelected));
+                tab.classList.toggle("border-blue-600", isSelected);
+                tab.classList.toggle("text-blue-600", isSelected);
+                tab.classList.toggle("border-transparent", !isSelected);
+            });
+
+            this.panels.forEach((panel) => {
+                const isActive = panel.getAttribute("data-tab") === tabId;
+                panel.hidden = !isActive;
+            });
+        }
+    }
+
+    // Initialize tab controller
+    new TabController();
+</script>
