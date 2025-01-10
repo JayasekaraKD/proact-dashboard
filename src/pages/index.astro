@@ -13,7 +13,7 @@ const relationships = await relationService.getAllRelations();
 	<div class="space-y-4">
 		<div class="flex justify-between items-center py-4">
 			<h1 class="text-2xl">Relationships</h1>
-			<CreateRelationshipButton client:load />
+			<CreateRelationshipButton />
 		</div>
 
 		<div class="mb-4">
@@ -29,55 +29,3 @@ const relationships = await relationService.getAllRelations();
 		<RelationshipModal />
 	</div>
 </DashboardLayout>
-
-<script>
-	import {
-		relationships,
-		modalState,
-		selectedRelation,
-	} from "../store/relationshipStore";
-
-	// Initialize relationships store with server data
-	relationships.set(
-		JSON.parse(
-			document.getElementById("relationship-data")?.textContent || "[]",
-		),
-	);
-
-	// Handle create button click
-	document
-		.getElementById("createRelationship")
-		?.addEventListener("click", () => {
-			selectedRelation.set(null);
-			modalState.set({
-				isOpen: true,
-				isUpdating: false,
-				isDeleting: false,
-				isSubmitting: false,
-				error: null,
-				activeTab: "basic",
-			});
-		});
-
-	// Handle search functionality
-	const searchInput = document.getElementById("searchInput");
-	searchInput?.addEventListener("input", (e) => {
-		const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
-		const allRelations = relationships.get();
-
-		if (!searchTerm) {
-			relationships.set(allRelations);
-			return;
-		}
-
-		const filtered = allRelations.filter(
-			(relation) =>
-				relation.name.toLowerCase().includes(searchTerm) ||
-				relation.shortName.toLowerCase().includes(searchTerm) ||
-				relation.email?.toLowerCase().includes(searchTerm) ||
-				relation.place?.toLowerCase().includes(searchTerm),
-		);
-
-		relationships.set(filtered);
-	});
-</script>

@@ -31,7 +31,6 @@ const { defaultTab = "organization" } = Astro.props;
                 <button
                     type="button"
                     role="tab"
-                    aria-controls={`panel-${tab.id}`}
                     data-tab={tab.id}
                     class:list={[
                         "px-4 py-2 text-sm border-b-2 transition-colors",
@@ -52,124 +51,67 @@ const { defaultTab = "organization" } = Astro.props;
 
     <!-- Tab Panels -->
     <div class="flex-1 overflow-y-auto">
-        <div
-            role="tabpanel"
-            id="panel-organization"
-            class:list={["p-6", { hidden: defaultTab !== "organization" }]}
-            data-tab="organization"
-        >
-            <OrganizationTabContent />
-        </div>
-
-        <div
-            role="tabpanel"
-            id="panel-address"
-            class:list={["p-6", { hidden: defaultTab !== "address" }]}
-            data-tab="address"
-        >
-            <AddressTabContent />
-        </div>
-
-        <div
-            role="tabpanel"
-            id="panel-financial"
-            class:list={["p-6", { hidden: defaultTab !== "financial" }]}
-            data-tab="financial"
-        >
-            <FinancialTabContent />
-        </div>
-
-        <div
-            role="tabpanel"
-            id="panel-contacts"
-            class:list={["p-6", { hidden: defaultTab !== "contacts" }]}
-            data-tab="contacts"
-        >
-            <ContactsTabContent />
-        </div>
-
-        <div
-            role="tabpanel"
-            id="panel-documents"
-            class:list={["p-6", { hidden: defaultTab !== "documents" }]}
-            data-tab="documents"
-        >
-            <DocumentsTabContent />
-        </div>
-
-        <div
-            role="tabpanel"
-            id="panel-notes"
-            class:list={["p-6", { hidden: defaultTab !== "notes" }]}
-            data-tab="notes"
-        >
-            <NotesTabContent />
-        </div>
+        {
+            tabs.map((tab) => (
+                <div
+                    role="tabpanel"
+                    id={`panel-${tab.id}`}
+                    class:list={["p-6", { hidden: tab.id !== defaultTab }]}
+                    data-tab-content={tab.id}
+                >
+                    {tab.id === "organization" && <OrganizationTabContent />}
+                    {tab.id === "address" && <AddressTabContent />}
+                    {tab.id === "financial" && <FinancialTabContent />}
+                    {tab.id === "contacts" && <ContactsTabContent />}
+                    {tab.id === "documents" && <DocumentsTabContent />}
+                    {tab.id === "notes" && <NotesTabContent />}
+                </div>
+            ))
+        }
     </div>
 </div>
 
 <script>
     import { modalState } from "../../store/relationshipStore";
 
-    class TabController {
-        private tabs: NodeListOf<HTMLElement>;
-        private panels: NodeListOf<HTMLElement>;
+    // Tab elements
+    const tabButtons = document.querySelectorAll('[role="tab"]');
+    const tabPanels = document.querySelectorAll('[role="tabpanel"]');
 
-        constructor() {
-            this.tabs = document.querySelectorAll('[role="tab"]');
-            this.panels = document.querySelectorAll('[role="tabpanel"]');
-            this.initialize();
-        }
+    function switchTab(tabId: string) {
+        // Update tab buttons
+        tabButtons.forEach((button) => {
+            const isSelected = button.getAttribute("data-tab") === tabId;
+            button.setAttribute("aria-selected", String(isSelected));
+            button.classList.toggle("border-blue-600", isSelected);
+            button.classList.toggle("text-blue-600", isSelected);
+            button.classList.toggle("border-transparent", !isSelected);
+            button.classList.toggle("text-gray-600", !isSelected);
+        });
 
-        private initialize() {
-            if (!this.tabs.length || !this.panels.length) {
-                console.error("Required tab elements not found");
-                return;
-            }
+        // Update panels
+        tabPanels.forEach((panel) => {
+            const isPanelActive =
+                panel.getAttribute("data-tab-content") === tabId;
+            panel.classList.toggle("hidden", !isPanelActive);
+        });
 
-            // Setup event listeners
-            this.tabs.forEach((tab) => {
-                tab.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    const tabId = tab.getAttribute("data-tab");
-                    if (tabId) {
-                        this.handleTabClick(tabId);
-                    }
-                });
-            });
-
-            // Subscribe to modal state changes
-            modalState.subscribe((state) => {
-                if (state.activeTab) {
-                    this.switchTab(state.activeTab);
-                }
-            });
-        }
-
-        private handleTabClick(tabId: string) {
-            this.switchTab(tabId);
-            modalState.setKey("activeTab", tabId);
-        }
-
-        private switchTab(tabId: string) {
-            // Update tab buttons
-            this.tabs.forEach((tab) => {
-                const isSelected = tab.getAttribute("data-tab") === tabId;
-                tab.setAttribute("aria-selected", String(isSelected));
-                tab.classList.toggle("border-blue-600", isSelected);
-                tab.classList.toggle("text-blue-600", isSelected);
-                tab.classList.toggle("border-transparent", !isSelected);
-                tab.classList.toggle("text-gray-600", !isSelected);
-            });
-
-            // Update panels
-            this.panels.forEach((panel) => {
-                const isPanelActive = panel.getAttribute("data-tab") === tabId;
-                panel.classList.toggle("hidden", !isPanelActive);
-            });
-        }
+        // Update modal state
+        modalState.setKey("activeTab", tabId);
     }
 
-    // Initialize tab controller when the component mounts
-    new TabController();
+    // Setup event listeners
+    tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const tabId = button.getAttribute("data-tab");
+            if (tabId) switchTab(tabId);
+        });
+    });
+
+    // Subscribe to modal state changes
+    modalState.subscribe((state) => {
+        if (state.activeTab) {
+            switchTab(state.activeTab);
+        }
+    });
 </script>
