@@ -2,7 +2,7 @@
 // src/components/relationship/tabs/AddressTabContent.astro
 ---
 
-<div class="space-y-6">
+<div class="space-y-4">
     <!-- Error Message -->
     <div
         id="address-error-message"
@@ -21,9 +21,9 @@
         </button>
     </div>
 
-    <div class="grid grid-cols-3 gap-6">
+    <div class="grid grid-cols-3 gap-4">
         <!-- Regular Address -->
-        <div class="space-y-4">
+        <div class="space-y-2">
             <h3 class="font-semibold text-lg">Address</h3>
             {
                 ["street", "houseNumber", "postcode", "place", "land"].map(
@@ -32,7 +32,6 @@
                             <label class="text-sm text-gray-600">
                                 {field.charAt(0).toUpperCase() +
                                     field.slice(1).replace(/([A-Z])/g, " $1")}
-                                :
                             </label>
                             <div class="mt-1" id={`${field}-container`}>
                                 <div
@@ -42,7 +41,7 @@
                                 <input
                                     type="text"
                                     id={`${field}-input`}
-                                    class="hidden edit-mode w-full px-3 py-2 border rounded-md"
+                                    class="hidden edit-mode w-full px-2 py-1 border rounded-md text-sm"
                                 />
                             </div>
                         </div>
@@ -52,7 +51,7 @@
         </div>
 
         <!-- Visiting Address -->
-        <div class="space-y-4">
+        <div class="space-y-2">
             <h3 class="font-semibold text-lg">Visiting address</h3>
             {
                 [
@@ -72,7 +71,6 @@
                                     .replace("visiting", "")
                                     .slice(1)
                                     .replace(/([A-Z])/g, " $1")}
-                            :
                         </label>
                         <div class="mt-1" id={`${field}-container`}>
                             <div
@@ -82,7 +80,7 @@
                             <input
                                 type="text"
                                 id={`${field}-input`}
-                                class="hidden edit-mode w-full px-3 py-2 border rounded-md"
+                                class="hidden edit-mode w-full px-2 py-1 border rounded-md text-sm"
                             />
                         </div>
                     </div>
@@ -91,7 +89,7 @@
         </div>
 
         <!-- Postal Address -->
-        <div class="space-y-4">
+        <div class="space-y-2">
             <h3 class="font-semibold text-lg">Postal address</h3>
             {
                 [
@@ -111,7 +109,6 @@
                                     .replace("mailing", "")
                                     .slice(1)
                                     .replace(/([A-Z])/g, " $1")}
-                            :
                         </label>
                         <div class="mt-1" id={`${field}-container`}>
                             <div
@@ -121,7 +118,7 @@
                             <input
                                 type="text"
                                 id={`${field}-input`}
-                                class="hidden edit-mode w-full px-3 py-2 border rounded-md"
+                                class="hidden edit-mode w-full px-2 py-1 border rounded-md text-sm"
                             />
                         </div>
                     </div>

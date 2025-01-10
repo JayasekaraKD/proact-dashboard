@@ -1,11 +1,11 @@
 ---
-import { Tabs } from "@radix-ui/react-tabs";
+// src/components/relationship/RelationshipTabs.astro
 import OrganizationTabContent from "./tabs/OrganizationTabContent.astro";
 import AddressTabContent from "./tabs/AddressTabContent.astro";
 import FinancialTabContent from "./tabs/FinancialTabContent.astro";
-import ContactsTabContent from "./tabs/ContactTabContent.astro";
-import DocumentsTabContent from "./tabs/DocumentTabContent.astro";
-import NotesTabContent from "./tabs/NoteTabContent.astro";
+import ContactsTabContent from "../dashboard/tabs/ContactTabContent.astro";
+import DocumentsTabContent from "../dashboard/tabs/DocumentTabContent.astro";
+import NotesTabContent from "../dashboard/tabs/NoteTabContent.astro";
 
 const tabs = [
     { id: "organization", label: "Organization Information" },
@@ -23,14 +23,14 @@ interface Props {
 const { defaultTab = "organization" } = Astro.props;
 ---
 
-<div class="flex-1 flex flex-col min-h-0" data-tabs-root>
+<div class="flex-1 flex flex-col min-h-0">
     <!-- Tab List -->
     <div class="flex gap-1 px-4 border-b bg-white" role="tablist">
         {
             tabs.map((tab) => (
                 <button
+                    type="button"
                     role="tab"
-                    aria-selected={tab.id === defaultTab}
                     aria-controls={`panel-${tab.id}`}
                     data-tab={tab.id}
                     class:list={[
@@ -51,65 +51,59 @@ const { defaultTab = "organization" } = Astro.props;
     </div>
 
     <!-- Tab Panels -->
-    <div class="flex-1 overflow-y-auto p-6" data-tab-content>
+    <div class="flex-1 overflow-y-auto">
         <div
             role="tabpanel"
             id="panel-organization"
-            class="space-y-6 tab-panel"
+            class:list={["p-6", { hidden: defaultTab !== "organization" }]}
             data-tab="organization"
-            hidden={defaultTab !== "organization"}
         >
-            <OrganizationTabContent client:load />
+            <OrganizationTabContent />
         </div>
 
         <div
             role="tabpanel"
             id="panel-address"
-            class="space-y-6 tab-panel"
+            class:list={["p-6", { hidden: defaultTab !== "address" }]}
             data-tab="address"
-            hidden={defaultTab !== "address"}
         >
-            <AddressTabContent client:load />
+            <AddressTabContent />
         </div>
 
         <div
             role="tabpanel"
             id="panel-financial"
-            class="space-y-6 tab-panel"
+            class:list={["p-6", { hidden: defaultTab !== "financial" }]}
             data-tab="financial"
-            hidden={defaultTab !== "financial"}
         >
-            <FinancialTabContent client:load />
+            <FinancialTabContent />
         </div>
 
         <div
             role="tabpanel"
             id="panel-contacts"
-            class="space-y-6 tab-panel"
+            class:list={["p-6", { hidden: defaultTab !== "contacts" }]}
             data-tab="contacts"
-            hidden={defaultTab !== "contacts"}
         >
-            <ContactsTabContent client:load />
+            <ContactsTabContent />
         </div>
 
         <div
             role="tabpanel"
             id="panel-documents"
-            class="space-y-6 tab-panel"
+            class:list={["p-6", { hidden: defaultTab !== "documents" }]}
             data-tab="documents"
-            hidden={defaultTab !== "documents"}
         >
-            <DocumentsTabContent client:load />
+            <DocumentsTabContent />
         </div>
 
         <div
             role="tabpanel"
             id="panel-notes"
-            class="space-y-6 tab-panel"
+            class:list={["p-6", { hidden: defaultTab !== "notes" }]}
             data-tab="notes"
-            hidden={defaultTab !== "notes"}
         >
-            <NotesTabContent client:load />
+            <NotesTabContent />
         </div>
     </div>
 </div>
@@ -118,59 +112,64 @@ const { defaultTab = "organization" } = Astro.props;
     import { modalState } from "../../store/relationshipStore";
 
     class TabController {
-        private root: HTMLElement | null;
         private tabs: NodeListOf<HTMLElement>;
         private panels: NodeListOf<HTMLElement>;
 
         constructor() {
-            this.root = document.querySelector("[data-tabs-root]");
             this.tabs = document.querySelectorAll('[role="tab"]');
-            this.panels = document.querySelectorAll(".tab-panel");
+            this.panels = document.querySelectorAll('[role="tabpanel"]');
             this.initialize();
         }
 
         private initialize() {
-            if (!this.root || !this.tabs.length || !this.panels.length) {
+            if (!this.tabs.length || !this.panels.length) {
                 console.error("Required tab elements not found");
                 return;
             }
 
-            // Subscribe to store changes
+            // Setup event listeners
+            this.tabs.forEach((tab) => {
+                tab.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const tabId = tab.getAttribute("data-tab");
+                    if (tabId) {
+                        this.handleTabClick(tabId);
+                    }
+                });
+            });
+
+            // Subscribe to modal state changes
             modalState.subscribe((state) => {
                 if (state.activeTab) {
                     this.switchTab(state.activeTab);
                 }
             });
-
-            // Setup event listeners
-            this.tabs.forEach((tab) => {
-                tab.addEventListener("click", () => {
-                    const tabId = tab.getAttribute("data-tab");
-                    if (tabId) this.handleTabClick(tabId);
-                });
-            });
         }
 
         private handleTabClick(tabId: string) {
+            this.switchTab(tabId);
             modalState.setKey("activeTab", tabId);
         }
 
         private switchTab(tabId: string) {
+            // Update tab buttons
             this.tabs.forEach((tab) => {
                 const isSelected = tab.getAttribute("data-tab") === tabId;
                 tab.setAttribute("aria-selected", String(isSelected));
                 tab.classList.toggle("border-blue-600", isSelected);
                 tab.classList.toggle("text-blue-600", isSelected);
                 tab.classList.toggle("border-transparent", !isSelected);
+                tab.classList.toggle("text-gray-600", !isSelected);
             });
 
+            // Update panels
             this.panels.forEach((panel) => {
-                const isActive = panel.getAttribute("data-tab") === tabId;
-                panel.hidden = !isActive;
+                const isPanelActive = panel.getAttribute("data-tab") === tabId;
+                panel.classList.toggle("hidden", !isPanelActive);
             });
         }
     }
 
-    // Initialize tab controller
+    // Initialize tab controller when the component mounts
     new TabController();
 </script>

@@ -3,6 +3,7 @@
 import { Dialog } from "@radix-ui/react-dialog";
 import type { Relation } from "../../db/schema";
 import RelationshipTabs from "./RelationshipTabs.astro";
+import CreateRelationshipForm from "../dashboard/CreateRelationshipForm.astro";
 
 interface Props {
     defaultTab?: string;
@@ -22,40 +23,69 @@ const { defaultTab = "organization" } = Astro.props;
                 <h2
                     class="text-xl font-semibold flex items-center gap-3 modal-title"
                 >
+                    Create New Relationship
                 </h2>
                 <button class="close-modal text-gray-500 hover:text-gray-700">
                     <span class="material-icons">close</span>
                 </button>
             </div>
 
-            <!-- Tabs Container -->
-            <div class="tabs-container" data-default-tab={defaultTab}>
-                <RelationshipTabs client:load />
+            <!-- Content -->
+            <div id="modal-content">
+                <!-- Create Form -->
+                <div id="create-form-container">
+                    <CreateRelationshipForm />
+                </div>
+
+                <!-- View/Edit Mode -->
+                <div id="view-edit-container" class="hidden">
+                    <div class="tabs-container" data-default-tab={defaultTab}>
+                        <RelationshipTabs client:load />
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    import { modalState } from "../../store/relationshipStore";
-    import { selectedRelation } from "../../store/relationshipStore";
+    import {
+        modalState,
+        selectedRelation,
+        isEditMode,
+    } from "../../store/relationshipStore";
 
     class ModalController {
         private modal: HTMLElement | null;
         private title: HTMLElement | null;
         private closeBtn: HTMLElement | null;
         private overlay: HTMLElement | null;
+        private createFormContainer: HTMLElement | null;
+        private viewEditContainer: HTMLElement | null;
 
         constructor() {
             this.modal = document.getElementById("relationship-modal");
             this.title = document.querySelector(".modal-title");
             this.closeBtn = document.querySelector(".close-modal");
             this.overlay = document.querySelector("[data-overlay]");
+            this.createFormContainer = document.getElementById(
+                "create-form-container",
+            );
+            this.viewEditContainer = document.getElementById(
+                "view-edit-container",
+            );
             this.initialize();
         }
 
         private initialize() {
-            if (!this.modal || !this.title || !this.closeBtn || !this.overlay) {
+            if (
+                !this.modal ||
+                !this.title ||
+                !this.closeBtn ||
+                !this.overlay ||
+                !this.createFormContainer ||
+                !this.viewEditContainer
+            ) {
                 console.error("Required modal elements not found");
                 return;
             }
@@ -71,6 +101,15 @@ const { defaultTab = "organization" } = Astro.props;
                         ? relation.name
                         : "Create New Relationship";
                 }
+
+                // Toggle between create form and view/edit mode
+                if (relation) {
+                    this.createFormContainer!.classList.add("hidden");
+                    this.viewEditContainer!.classList.remove("hidden");
+                } else {
+                    this.createFormContainer!.classList.remove("hidden");
+                    this.viewEditContainer!.classList.add("hidden");
+                }
             });
 
             // Setup event listeners
@@ -82,8 +121,16 @@ const { defaultTab = "organization" } = Astro.props;
         }
 
         private handleClose = () => {
-            modalState.setKey("isOpen", false);
+            modalState.set({
+                isOpen: false,
+                isUpdating: false,
+                isDeleting: false,
+                isSubmitting: false,
+                error: null,
+                activeTab: "organization",
+            });
             selectedRelation.set(null);
+            isEditMode.set(false);
         };
     }
 

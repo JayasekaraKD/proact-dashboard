@@ -3,29 +3,17 @@ import { z } from 'zod';
 
 // Common validation patterns
 const patterns = {
-    phone: /^\+?[1-9]\d{1,14}$/, // E.164 format
+    // More lenient phone pattern that allows various formats
+    phone: /^[0-9+\-() ]{6,20}$/,
     kvk: /^\d{8}$/, // 8 digits
     vat: /^[A-Z]{2}[0-9A-Z]+$/, // Country code + numbers
     postcode: /^[1-9][0-9]{3} ?(?!sa|sd|ss)[a-z]{2}$/i, // Dutch postcode format
 };
 
-// Base schemas for reuse
-export const addressSchema = z.object({
-    street: z.string().min(1, "Street is required"),
-    houseNumber: z.string().min(1, "House number is required"),
-    postcode: z.string().regex(patterns.postcode, "Invalid postcode format"),
-    place: z.string().min(1, "Place is required"),
-    land: z.string().min(1, "Country is required"),
-});
-
-export const contactSchema = z.object({
-    telephone: z.string().regex(patterns.phone, "Invalid phone format").optional(),
-    email: z.string().email("Invalid email format").optional(),
-    website: z.string().url("Invalid website URL").optional(),
-});
-
 // Form validation utilities
 export function validateField(value: string, type: 'email' | 'phone' | 'kvk' | 'vat' | 'postcode'): boolean {
+    if (!value) return true; // Allow empty values for optional fields
+
     switch (type) {
         case 'email':
             return z.string().email().safeParse(value).success;
@@ -46,11 +34,11 @@ export function validateField(value: string, type: 'email' | 'phone' | 'kvk' | '
 export const relationshipValidation = {
     isValidShortName: (value: string) => value.length >= 2 && value.length <= 50,
     isValidName: (value: string) => value.length >= 2 && value.length <= 100,
-    isValidEmail: (value: string) => validateField(value, 'email'),
-    isValidPhone: (value: string) => validateField(value, 'phone'),
-    isValidKvk: (value: string) => validateField(value, 'kvk'),
-    isValidVat: (value: string) => validateField(value, 'vat'),
-    isValidPostcode: (value: string) => validateField(value, 'postcode'),
+    isValidEmail: (value: string) => !value || validateField(value, 'email'),
+    isValidPhone: (value: string) => !value || validateField(value, 'phone'),
+    isValidKvk: (value: string) => !value || validateField(value, 'kvk'),
+    isValidVat: (value: string) => !value || validateField(value, 'vat'),
+    isValidPostcode: (value: string) => !value || validateField(value, 'postcode'),
 
     validateForm: (data: any) => {
         const errors: Record<string, string> = {};
@@ -68,7 +56,7 @@ export const relationshipValidation = {
         }
 
         if (data.telephone && !relationshipValidation.isValidPhone(data.telephone)) {
-            errors.telephone = 'Invalid phone format';
+            errors.telephone = 'Phone number should be between 6 and 20 digits';
         }
 
         if (data.kvkNumber && !relationshipValidation.isValidKvk(data.kvkNumber)) {
